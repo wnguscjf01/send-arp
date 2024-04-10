@@ -118,11 +118,16 @@ int attack(char* dev, char* sip, char* tip){
 		}
 		sprintf(pktip, "%d.%d.%d.%d\x00", pkt_data[28],pkt_data[29],pkt_data[30],pkt_data[31]);
 		uint16_t type = ntohs(*(uint16_t*)(&pkt_data[12]));
-		if(type == 0x0806 && strcmp(pktip, sip)==0){
+		/*if(type == 0x0806 && strcmp(pktip, sip)==0){
+			sprintf(smac,"%02x:%02x:%02x:%02x:%02x:%02x",pkt_data[22],pkt_data[23],pkt_data[24],pkt_data[25],pkt_data[26],pkt_data[27]);
+			break;
+		}*/
+		//printf("%0x\n",type);
+		uint16_t op = ntohs(*(uint16_t*)(&pkt_data[20]));
+		if(type == 0x0806 && op==ArpHdr::Reply){
 			sprintf(smac,"%02x:%02x:%02x:%02x:%02x:%02x",pkt_data[22],pkt_data[23],pkt_data[24],pkt_data[25],pkt_data[26],pkt_data[27]);
 			break;
 		}
-		printf("%0x\n",type);
 		
 	}
 	pcap_close(handle);
